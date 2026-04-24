@@ -26,6 +26,6 @@ def sum_column(filename, col_index):
         data = list(reader)
 
     total = 0
-    for row in data[1:]:
+    for row in data:
         total += int(row[col_index])
     return total
