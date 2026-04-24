@@ -1,13 +1,7 @@
-from csv_utils import save_csv, load_csv, count_csv_rows, sum_column
+from .file_utils import save_text, load_text, append_text, count_lines
 
-products = [
-    ["title", "price", "count"],
-    ["Ноутбук", 50000, 2],
-    ["Мышь", 1500, 5]
-]
+save_text("project_note.txt", "Это первая строка проекта.")
+append_text("project_note.txt", "Это вторая строка проекта.")
 
-save_csv("products.csv", products)
-
-print(load_csv("products.csv"))
-print("Количество строк:", count_csv_rows("products.csv"))
-print("Сумма столбца price:", sum_column("products.csv", 1))
+print(load_text("project_note.txt"))
+print("Количество строк:", count_lines("project_note.txt"))
