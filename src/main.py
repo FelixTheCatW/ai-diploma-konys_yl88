@@ -1,7 +1,8 @@
-from .file_utils import save_text, load_text, append_text, count_lines
+from json_utils import save_json, load_json, dict_to_json_text
 
-save_text("project_note.txt", "Это первая строка проекта.")
-append_text("project_note.txt", "Это вторая строка проекта.")
+config = {"model": "demo", "temperature": 0.7, "max_tokens": 200}
 
-print(load_text("project_note.txt"))
-print("Количество строк:", count_lines("project_note.txt"))
+save_json("config.json", config)
+
+print(load_json("config.json"))
+print(dict_to_json_text(config))
