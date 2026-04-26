@@ -1,8 +1,23 @@
-from json_utils import save_json, load_json, dict_to_json_text
+from text_utils import normalize_text
+from data_utils import count_items
+from file_utils import save_text, load_text
+from json_utils import save_json, load_json
 
-config = {"model": "demo", "temperature": 0.7, "max_tokens": 200}
+text = "   Мой первый проект на Python   "
+tasks = ["изучить строки", "изучить файлы", "изучить json"]
 
-save_json("config.json", config)
+clean_text = normalize_text(text)
+task_count = count_items(tasks)
 
-print(load_json("config.json"))
-print(dict_to_json_text(config))
+save_text("project_note.txt", clean_text)
+loaded_text = load_text("project_note.txt")
+
+config = {"project_name": "my_first_project", "task_count": task_count}
+
+save_json("project_config.json", config)
+loaded_config = load_json("project_config.json")
+
+print("Очищенный текст:", clean_text)
+print("Прочитанный текст из файла:", loaded_text)
+print("Количество задач:", task_count)
+print("Загруженный JSON:", loaded_config)
