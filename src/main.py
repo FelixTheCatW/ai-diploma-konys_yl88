@@ -1,5 +1,5 @@
-from user_menu import show_menu, run_choice
+from app import run
+from pathlib import Path
 
-show_menu()
-choice = input("Введите номер действия: ")
-run_choice(choice)
+if __name__ == "__main__":
+    run(Path(__file__).resolve().parent)
