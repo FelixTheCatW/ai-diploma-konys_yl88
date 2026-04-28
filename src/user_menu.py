@@ -1,6 +1,8 @@
 import os
 import ast
 from pathlib import Path
+import subprocess
+import sys
 
 
 def get_module_docstring(filepath: Path) -> list[str]:
@@ -35,6 +37,7 @@ def get_functions_doc(filepath: Path) -> list[tuple[str, str]]:
     return functions
 
 
+
 def scan_modules(directory: str) -> list[dict]:
     """
     Сканирует указанную директорию, собирает информацию о .py файлах.
@@ -53,10 +56,35 @@ def scan_modules(directory: str) -> list[dict]:
                 if docstring
                 else "Мы не знаем, что это такое. Очень страшно.",
                 "functions": functions,
+                "demo": find_demo(py_file.stem)
             }
         )
 
     return modules
 
+def find_demo(mod_name: str):
+    demo_path = Path("src/demo/" + mod_name + "_demo.py")
+    if demo_path.exists:
+        return demo_path.absolute()
+    else:
+        return None
 
-
+def run_module_file(file_path):
+    try:
+        result = subprocess.run(
+            [sys.executable, file_path],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return {
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode,
+        }
+    except FileNotFoundError:
+        return {
+            "stdout": "",
+            "stderr": f"File not found: {file_path}",
+            "returncode": -1,
+        }
