@@ -1,61 +1,105 @@
 import unittest
 import os
 import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from text_utils import normalize_text, word_count, contains_word
+from test_helpers import check
 
 
 class TestTextUtils(unittest.TestCase):
-    def test_normalize_text_basic(self):        
-        print("\n--- ТЕСТ: normalize_text (Базовый) ---")
-        input_str = "  Привет   Мир  "
-        print(f"Входная строка: '{input_str}'")
+    def test_normalize_text(self):
+        """Тест нормализации текста."""
+        print("\n[ТЕСТ] normalize_text")
 
-        result = normalize_text(input_str)
-        print(f"Результат нормализации: '{result}'")
+        res = normalize_text("  Привет   Мир  ")
+        print(f"  Лишние пробелы и регистр: '{res}' -> {check(res == 'привет мир')}")
+        self.assertEqual(res, "привет мир")
 
-        self.assertEqual(result, "привет мир")
-        print("УСПЕХ: Строка приведена к нижнему регистру, лишние пробелы удалены.")
+        res_empty = normalize_text("   ")
+        print(f"  Пустая строка: '{res_empty}' -> {check(res_empty == '')}")
+        self.assertEqual(res_empty, "")
 
-    def test_word_count_normal(self):
-        """Тест подсчета слов в обычном предложении."""
-        print("\n--- ТЕСТ: word_count (Обычный текст) ---")
-        text = "Раз два три четыре"
-        print(f"Текст: '{text}'")
+    def test_word_count(self):
+        """Тест подсчета количества слов."""
+        print("\n[ТЕСТ] word_count")
 
-        count = word_count(text)
-        print(f"Количество слов: {count}")
-
+        count = word_count("Раз два три четыре")
+        print(f"  Обычный текст (4 слова): {count} -> {check(count == 4)}")
         self.assertEqual(count, 4)
-        print("УСПЕХ: Количество слов посчитано верно.")
 
-    def test_contains_word_true(self):
-        """Тест поиска слова, которое есть в тексте."""
-        print("\n--- ТЕСТ: contains_word (Слово найдено) ---")
-        text = "Мама мыла раму"
-        word = "раму"
-        print(f"Текст: '{text}', Ищем слово: '{word}'")
+        count_empty = word_count("")
+        print(f"  Пустая строка: {count_empty} -> {check(count_empty == 0)}")
+        self.assertEqual(count_empty, 0)
 
-        result = contains_word(text, word)
-        print(f"Результат поиска: {result}")
+    def test_contains_word(self):
+        """Тест поиска целого слова."""
+        print("\n[ТЕСТ] contains_word")
 
-        self.assertTrue(result)
-        print("УСПЕХ: Слово 'раму' найдено в тексте.")
+        src_text = "Мама мыла раму"
+        # Поиск существующего слова
+        res_found = contains_word(src_text, "раму")
+        print(
+            f"  Слово 'раму' найдено в '{src_text}': {res_found} -> {check(res_found)}"
+        )
+        self.assertTrue(res_found)
 
-    def test_contains_word_false_substring(self):
-        """Тест, что поиск идет по целым словам, а не подстрокам."""
-        print("\n--- ТЕСТ: contains_word (Ложное совпадение подстроки) ---")
-        text2 = "скобка"
-        word2 = "коб"  # подстрока есть, но слова нет
+        # Поиск несуществующего (подстрока)
+        res_sub = contains_word("скобка", "коб")
+        print(f"  Подстрока 'коб' в 'скобка': {res_sub} -> {check(not res_sub)}")
+        self.assertFalse(res_sub)
 
-        print(f"Текст: '{text2}', Ищем слово: '{word2}'")
-
-        result = contains_word(text2, word2)
-        print(f"Результат поиска: {result}")
-
-        self.assertFalse(result)
-        print("УСПЕХ: Подстрока не считается отдельным словом.")
 
 if __name__ == "__main__":
-    # Запуск тестов с выводом комментариев
+    unittest.main(verbosity=2)
+import unittest
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from text_utils import normalize_text, word_count, contains_word
+from test_helpers import check
+
+class TestTextUtils(unittest.TestCase):
+
+    def test_normalize_text(self):
+        """Тест нормализации текста."""
+        print("\n[ТЕСТ] normalize_text")
+        
+        res = normalize_text("  Привет   Мир  ")
+        print(f"  Лишние пробелы и регистр: '{res}' -> {check(res == 'привет мир')}")
+        self.assertEqual(res, "привет мир")
+
+        res_empty = normalize_text("   ")
+        print(f"  Пустая строка: '{res_empty}' -> {check(res_empty == '')}")
+        self.assertEqual(res_empty, "")
+
+    def test_word_count(self):
+        """Тест подсчета количества слов."""
+        print("\n[ТЕСТ] word_count")
+
+        count = word_count("Раз два три четыре")
+        print(f"  Обычный текст (4 слова): {count} -> {check(count == 4)}")
+        self.assertEqual(count, 4)
+
+        count_empty = word_count("")
+        print(f"  Пустая строка: {count_empty} -> {check(count_empty == 0)}")
+        self.assertEqual(count_empty, 0)
+
+    def test_contains_word(self):
+        """Тест поиска целого слова."""
+        print("\n[ТЕСТ] contains_word")
+
+        src_text = "Мама мыла раму"
+        # Поиск существующего слова
+        res_found = contains_word(src_text, "раму")
+        print(f"  Слово 'раму' найдено в '{src_text}': {res_found} -> {check(res_found)}")
+        self.assertTrue(res_found)
+
+        # Поиск несуществующего (подстрока)
+        res_sub = contains_word("скобка", "коб")
+        print(f"  Подстрока 'коб' в 'скобка': {res_sub} -> {check(not res_sub)}")
+        self.assertFalse(res_sub)
+
+if __name__ == "__main__":    
     unittest.main(verbosity=2)

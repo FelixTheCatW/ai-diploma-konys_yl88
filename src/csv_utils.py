@@ -53,14 +53,14 @@ def count_csv_rows(filename):
     return len(data)
 
 
-def sum_column(filename, col_index):
+def sum_column(filename, col_index, has_header=False):
     """
     Суммирует значения в указанном столбце CSV-файла.
-    Предполагается, что значения столбца – целые числа.
 
     Аргументы:
         filename (str): Имя файла.
         col_index (int): Индекс столбца (начиная с 0).
+        has_header (bool): Если True, первая строка считается заголовком и пропускается.
 
     Возвращает:
         int: Сумма значений.
@@ -70,6 +70,13 @@ def sum_column(filename, col_index):
         data = list(reader)
 
     total = 0
-    for row in data:
-        total += int(row[col_index])
+    start_index = 1 if has_header else 0
+
+    for row in data[start_index:]:
+        try:
+            if len(row) > col_index:
+                total += int(row[col_index])
+        except ValueError:            
+            continue
+
     return total
