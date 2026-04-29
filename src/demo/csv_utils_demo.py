@@ -38,7 +38,7 @@ class TestCsvUtils(unittest.TestCase):
         save_csv(TEST_FILE, test_rows)
         print(f"  Файл '{TEST_FILE}' создан.")
 
-        loaded = load_csv(TEST_FILE)
+        loaded = load_csv(TEST_FILE)        
         print(f"  Данные совпадают -> {check(loaded == test_rows)}")
         self.assertEqual(loaded, test_rows)
 

@@ -1,6 +1,9 @@
 import curses
+import winsound
 from user_menu import scan_modules, run_module_file
 from text_utils import wrap_text
+
+colors_init: set = set()
 
 
 class ScreenWriter:
@@ -10,48 +13,42 @@ class ScreenWriter:
         self.y = 0
         self.x = 0
 
-    def move_to(self, y, x):
-        self.y = y
-        self.x = x
+    def new_line(self):
+        self.y += 1
 
-    def write(self, text="", color=0):
-        if self.y >= self.height - 1:
-            return False
-
+    def write(self, text: str, indent: int, color: int):
         try:
-            if not text:
-                self.y += 1
+            if self.y >= self.height - 1:
+                return False
+
+            if not text or not text.strip():
                 return True
-            if not text:
-                self.y += 1
-                return True
-            safe_text = text[: self.width - self.x - 1]
-            self.stdscr.addstr(self.y, self.x, safe_text, color)
+
+            if len(text) > self.width - self.x - 1 - indent:
+                text = text[: self.width - 1 - indent]
+
+            if color > 0 and color not in colors_init:
+                curses.init_pair(color + 1, color, -1)
+
+            self.stdscr.addstr(self.y, self.x + indent, text, curses.color_pair(color))
             self.y += 1
+
             return True
         except curses.error:
             return False
 
     def write_wrapped(self, text, indent=0, color=0):
-        if self.y >= self.height - 1:
-            return False
-
         lines = wrap_text(text, self.width - indent - 2)
         for line in lines:
-            if not self.write(" " * indent + line, color):
-                return False
+            return self.write(line, indent, color)
+
         return True
 
     def write_separator(self, char="=", color=0):
-        if self.y >= self.height - 1:
-            return False
-        separator = char * self.width
-        try:
-            self.stdscr.addstr(self.y, 0, separator, color)
-            self.y += 1
-            return True
-        except curses.error:
-            return False
+        separator = char * (self.width - 2)
+        self.write(separator, 0, color)
+        self.y += 1
+        return True
 
 
 def draw_interface(
@@ -62,7 +59,6 @@ def draw_interface(
 ):
     stdscr.clear()
 
-    # Инициализация цветов
     curses.use_default_colors()
     for i in range(0, 255):
         try:
@@ -72,22 +68,21 @@ def draw_interface(
 
     height, width = stdscr.getmaxyx()
 
-    # Создаем помощника для вывода
     sw = ScreenWriter(stdscr)
 
     names_max_lens = max((len(x["module_name"]) for x in modules), default=10) * 2
-    sw.write("Меню".center(width))
-    sw.write(("*" * names_max_lens).center(width))
+    sw.write("Меню".center(width), 0, 48)
+    sw.write(("~" * names_max_lens).center(width), 0, 48)
 
     for i, mod in enumerate(modules):
         name = mod["module_name"]
         if i == current_idx:
-            line = f"👉 {name}".center(width)
+            line = f"👉 {name}".center(width - 2)
         else:
-            line = f"    {name}".center(width)
-        sw.write(line)
-        
-    sw.write_separator("=", curses.color_pair(244))
+            line = f"    {name}".center(width - 2)
+        sw.write(line, 0, 81)
+
+    sw.write_separator("=", 244)
 
     if show_demo:
         demo_path = modules[current_idx]["demo"]
@@ -95,53 +90,41 @@ def draw_interface(
             demo_result = run_module_file(demo_path)
 
             if demo_result["stdout"]:
-                sw.write("Сообщения выполнения тестов:", color=curses.color_pair(203))                
+                sw.write("Сообщения выполнения тестов:", 0, 203)
                 original_lines = demo_result["stdout"].splitlines()
                 for line in original_lines:
-                    # Используем write_wrapped для автоматического переноса
-                    if not sw.write_wrapped(line, indent=2):
+                    if not sw.write_wrapped(line, 2):
                         break
 
             if demo_result["stderr"]:
-                sw.write()
-                if sw.y < height - 1:
-                    sw.write(
-                        "Вывод результатов фреймворка unittest:", curses.color_pair(203)
-                    )
-                    error_lines = demo_result["stderr"].splitlines()
-                    for line in error_lines:
-                        if line:  # Пропускаем совсем пустые, если нужно
-                            if not sw.write_wrapped(
-                                line, indent=2
-                            ):
-                                break
+                sw.new_line()
+                sw.write("Вывод результатов фреймворка unittest:", 0, 203)
+                error_lines = demo_result["stderr"].splitlines()
+                for line in error_lines:
+                    if line:  # Пропускаем совсем пустые, если нужно
+                        if not sw.write_wrapped(line, 2):
+                            break
     else:
-        sw.write("Описание модуля:", curses.color_pair(13))
+        sw.write("Описание модуля:", 0, 13)
         doc_text = modules[current_idx]["docstring"]
-        sw.write_wrapped(doc_text, indent=2)
+        sw.write_wrapped(doc_text, 2)
 
         funcs = modules[current_idx]["functions"]
         if funcs:
-            sw.write("Функции модуля:", curses.color_pair(34))
+            sw.write("Функции модуля:", 0, 34)
 
-            for fname, fdoc in funcs:
-                sw.write(f"  📌 {fname}")
+            for func_name, func_doc in funcs:
+                sw.write(f"  📌 {func_name}", 0, 0)
 
-                if fdoc:
-                    for line in fdoc.splitlines():
-                        if line.strip():
-                            if not sw.write_wrapped(
-                                line, indent=4, color=curses.color_pair(250)
-                            ):
-                                break
-                sw.write()
+                if func_doc:
+                    for line in func_doc.splitlines():
+                        sw.write_wrapped(line, 4, 250)
+
+                sw.new_line()
 
     # --- Footer (подвал) ---
     help_msg = "↑/↓: выбор модуля | Enter: показать функции | q: выход"
-    try:
-        stdscr.addstr(height - 1, 0, help_msg[: width - 1], curses.color_pair(48))
-    except curses.error:
-        pass
+    stdscr.addstr(height - 1, 0, help_msg, curses.color_pair(48))
 
     stdscr.refresh()
 
@@ -168,11 +151,14 @@ def main_curses(stdscr, directory: str):
             break
         elif key == curses.KEY_UP:
             current_idx = (current_idx - 1) % len(modules)
+            winsound.Beep(200, 100)
             show_demo = False
         elif key == curses.KEY_DOWN:
             current_idx = (current_idx + 1) % len(modules)
+            winsound.Beep(200, 100)
             show_demo = False
         elif key == ord("\n") or key == curses.KEY_ENTER:
+            winsound.Beep(160, 400)
             show_demo = True
 
 
