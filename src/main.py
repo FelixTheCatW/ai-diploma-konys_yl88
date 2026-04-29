@@ -11,7 +11,7 @@ comp_name = os.environ.get("COMPUTERNAME", "")
 user_name = os.environ.get("USERNAME", "")
 
 text = "   Ну, ПОГоДи!   "
-imports = get_imports_in_current_file()
+imports = get_imports_in_current_file(lambda: None)
 
 print(imports)
 clean_text = normalize_text(text)
