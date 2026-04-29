@@ -123,7 +123,7 @@ def draw_interface(
                 sw.new_line()
 
     # --- Footer (подвал) ---
-    help_msg = "↑/↓: выбор модуля | Enter: показать функции | q: выход"
+    help_msg = "↑/↓: выбор модуля | Enter: запустить тесты | q: выход"
     stdscr.addstr(height - 1, 0, help_msg, curses.color_pair(48))
 
     stdscr.refresh()
