@@ -34,3 +34,4 @@ print("Очищенный текст:", clean_text)
 print("Прочитанный текст из файла:", loaded_text)
 print("Количество импортов в этом файле:", imports_count)
 print("Загруженный JSON:", loaded_config)
+
